@@ -5,6 +5,7 @@ import os
 import shutil
 
 JAR_MAP = {
+    "agility-ris-server/server/com.agfa.agility.model.core": "lib",
     "agility-ris-server/server/com.agfa.ris.server.web": "server",
     "agility-ris-server/server/com.agfa.ris.server.reporting": "server",
     "agility-ris-server/server/com.agfa.ris.server": "server",
