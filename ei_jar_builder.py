@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import datetime
 from git import *
 import configparser
 import os
@@ -19,7 +20,7 @@ SOURCE_MODIFY_TIME = {
 
 }
 
-EI_MONOREPO_PATH="D:\AGFA-Code-EI-monorepo\ei-monorepo"
+EI_MONOREPO_PATH = "D:\AGFA-Code-EI-monorepo\ei-monorepo"
 
 
 def get_changed_jar_paths():
@@ -38,8 +39,8 @@ def get_changed_jar_paths():
                 SOURCE_MODIFY_TIME[jar_path] = source_modify_time
     return jar_set
 
-# only return source code file modify time greater than jar modify time
 def skip_latest_jar(jar_set):
+    """only return source code file modify time greater than jar modify time"""
     result = set()
     for jar in jar_set:
         last_splash_pos = jar.rfind('/')
@@ -47,18 +48,25 @@ def skip_latest_jar(jar_set):
         jar_path = EI_MONOREPO_PATH+"\{}\\build\\libs\\{}-100.0.0.SNAPSHOT.jar".format(
             jar, jar_name)
         jar_modify_time = os.stat(jar_path).st_mtime
+        source_modify_time_str = datetime.datetime.fromtimestamp(
+            SOURCE_MODIFY_TIME[jar]).strftime('%Y-%m-%d %H:%M:%S')
+        jar_modify_time_str = datetime.datetime.fromtimestamp(
+            jar_modify_time).strftime('%Y-%m-%d %H:%M:%S')
         if SOURCE_MODIFY_TIME[jar] > jar_modify_time:
             result.add(jar)
-            print("[INFO] The Latest Jar : {} , source mtime {} , jar mtime {} ".format(jar,SOURCE_MODIFY_TIME[jar], jar_modify_time))
+            print("\033[32m[INFO] The Latest Jar : {} , source modify time [{}] , jar modify time [{}] \033[0m".format(
+                jar, source_modify_time_str, jar_modify_time_str))
         else:
-            print("\033[32m[INFO] The Latest Jar : {} , No more building \033[0m".format(jar))
+            print("\033[32m[INFO] The Latest Jar : {} , No more building, jar modify time [{}] \033[0m".format(
+                jar, jar_modify_time_str))
     return result
 
 
 def build_jar(jar_set):
     os.chdir(EI_MONOREPO_PATH)
     for jar_path in jar_set:
-        clean_cmd = "call .\gradlew :{}:clean".format(jar_path.replace('/', ':'))
+        clean_cmd = "call .\gradlew :{}:clean".format(
+            jar_path.replace('/', ':'))
         build_cmd = "call .\gradlew :{}:jar".format(jar_path.replace('/', ':'))
         print("[INFO] Building Jar : {}".format(jar_path.replace('/', ':')))
         os.system(clean_cmd)
